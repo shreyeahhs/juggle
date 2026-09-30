@@ -1,0 +1,26 @@
+# Keep secrets and local state out of the build context entirely.
+.env
+.env.*
+!.env.example
+.data
+secrets/
+.secrets/
+
+node_modules
+.next
+out
+build
+coverage
+.git
+.gitignore
+
+*.log
+.DS_Store
+.vscode
+.idea
+
+# Not needed to build or run the server image
+tests
+docs
+*.md
+!README.md

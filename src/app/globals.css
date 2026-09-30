@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/*
+ * Juggle design tokens: "thermal print".
+ *
+ * Two ideas carry the whole interface.
+ *
+ * 1. Structure is printed, not boxed. Hairlines and columns do the grouping
+ *    that a stock admin theme would do with stacked cards. One corner radius
+ *    (4px) exists, and nothing uses another.
+ * 2. Chroma means activity. Amber is the only accent, and it means a key is
+ *    in flight or being throttled. A resting key has no chroma at all, so the
+ *    palette reads the same way the router does. Red is reserved for failure.
+ *
+ * Neutrals are warm throughout, so the amber never looks bolted onto a cool
+ * grey. Dark mode is opt-in via the `dark` class so the toggle can override the
+ * operating system.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  /* One radius. Print-sharp, not rounded-admin-panel. */
+  --radius-sharp: 0.25rem;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-quad: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Paper. Warm, low-chroma, a shade off white so depth survives. */
+  --color-canvas: oklch(98.9% 0.004 85);
+  --color-surface: oklch(99.8% 0.002 85);
+  --color-surface-muted: oklch(96.4% 0.005 85);
+  --color-line: oklch(90.5% 0.006 82);
+  --color-line-strong: oklch(81% 0.009 80);
+
+  --color-ink: oklch(22% 0.013 62);
+  --color-ink-muted: oklch(47.5% 0.012 66);
+  /* Solved against --color-surface for 4.5:1, not chosen by eye. */
+  --color-ink-subtle: oklch(55.5% 0.011 70);
+
+  /*
+   * Heat. `heat` is the graphic amber for fills, bars and marks; `heat-ink` is
+   * the darker step that clears 4.5:1 on paper for text and links. Same hue,
+   * two steps, so this is still a single accent.
+   */
+  --color-heat: oklch(69% 0.163 58);
+  --color-heat-ink: oklch(52.5% 0.142 49);
+  --color-heat-wash: oklch(96.5% 0.035 72);
+  --color-heat-contrast: oklch(99% 0.01 85);
+
+  /* Failure. The only other hue, and it never appears as decoration. */
+  --color-fail: oklch(56% 0.198 27);
+  --color-fail-ink: oklch(49% 0.19 27);
+  --color-fail-wash: oklch(96.5% 0.028 25);
+
+  /*
+   * Chart series: graphite for served requests, red for failed. Separated by
+   * luminance before hue, so they survive every colour vision deficiency and
+   * stay legible on both surfaces. Do not re-pick these by eye.
+   */
+  --color-plot-served: oklch(46% 0.012 66);
+  --color-plot-failed: oklch(56% 0.198 27);
+}
+
+.dark {
+  --color-canvas: oklch(16.8% 0.006 62);
+  --color-surface: oklch(19.8% 0.007 62);
+  --color-surface-muted: oklch(23.5% 0.008 62);
+  --color-line: oklch(28.5% 0.009 62);
+  --color-line-strong: oklch(37% 0.012 62);
+
+  --color-ink: oklch(95.5% 0.005 80);
+  --color-ink-muted: oklch(71.5% 0.012 70);
+  --color-ink-subtle: oklch(60.5% 0.012 66);
+
+  --color-heat: oklch(75% 0.155 62);
+  --color-heat-ink: oklch(81% 0.135 68);
+  --color-heat-wash: oklch(27.5% 0.05 55);
+  --color-heat-contrast: oklch(18% 0.02 55);
+
+  --color-fail: oklch(66% 0.175 27);
+  --color-fail-ink: oklch(72% 0.155 27);
+  --color-fail-wash: oklch(27% 0.055 25);
+
+  --color-plot-served: oklch(72% 0.012 70);
+  --color-plot-failed: oklch(66% 0.175 27);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    /*
+     * The parts nobody draws still carry the design: a default scrollbar in a
+     * warm-paper page is the cheapest tell that a theme was assembled.
+     */
+    scrollbar-color: var(--color-line-strong) transparent;
+    scrollbar-width: thin;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Numbers are data here, so they align in columns and never shift width. */
+  code,
+  kbd,
+  pre,
+  samp,
+  .nums,
+  [class*="font-mono"] {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "zero" 1;
+  }
+
+  ::selection {
+    background: var(--color-heat-wash);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-heat-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  input,
+  textarea {
+    caret-color: var(--color-heat-ink);
+  }
+
+  /* Range inputs and checkboxes otherwise ship the operating system's blue. */
+  input[type="range"],
+  input[type="checkbox"],
+  input[type="radio"],
+  progress {
+    accent-color: var(--color-heat-ink);
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: from-font;
+  }
+
+  ::marker {
+    color: var(--color-ink-subtle);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line-strong);
+    border: 3px solid var(--color-canvas);
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-subtle);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Display type: tight enough to read as one object at large sizes. */
+  .display {
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
