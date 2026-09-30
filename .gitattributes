@@ -1,0 +1,8 @@
+# Normalise line endings so a clone is byte-identical on Windows, macOS and
+# Linux. Without this, a Windows checkout can commit CRLF into files the Docker
+# build runs through a Linux shell.
+* text=auto eol=lf
+
+*.png binary
+*.svg text eol=lf
+pnpm-lock.yaml -diff linguist-generated

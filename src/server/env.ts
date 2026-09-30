@@ -119,8 +119,3 @@ export function getEnv(): Env {
   cached ??= parseEnv(process.env);
   return cached;
 }
-
-/** Test helper: drop the cached value after mutating process.env. */
-export function resetEnvCache(): void {
-  cached = undefined;
-}

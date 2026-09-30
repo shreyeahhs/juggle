@@ -54,3 +54,10 @@ Thumbs.db
 # ─── Deploy platforms ────────────────────────────────────────────────────────
 .vercel
 .fly/
+
+# ─── Agent & editor tooling ──────────────────────────────────────────────────
+# `next dev` regenerates AGENTS.md on every run. Keep it, and any agent or
+# editor config, local to whoever is working on the code.
+AGENTS.md
+CLAUDE.md
+.claude/

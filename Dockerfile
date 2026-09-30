@@ -18,10 +18,9 @@ FROM base AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Placeholder secrets: the build never contacts the database, and every page
-# reads configuration at request time. Real values come from the runtime env.
-ENV BETTER_AUTH_SECRET="build-time-placeholder-secret-0000000000" \
-    ENCRYPTION_KEYS="build:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+# No build-time secrets are needed: nothing reads the environment at import
+# time, so the build never contacts the database or a provider. Every value
+# is read per request from the runtime environment.
 RUN pnpm build
 
 # ── Runtime ──────────────────────────────────────────────────────────────────
@@ -30,7 +29,6 @@ WORKDIR /app
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
 RUN addgroup -g 1001 -S nodejs && adduser -S -u 1001 -G nodejs juggle
 
-COPY --from=build /app/public ./public
 COPY --from=build --chown=juggle:nodejs /app/.next/standalone ./
 COPY --from=build --chown=juggle:nodejs /app/.next/static ./.next/static
 # SQL migrations are read at runtime when RUN_MIGRATIONS=true.

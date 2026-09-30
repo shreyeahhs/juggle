@@ -20,7 +20,6 @@ coverage
 .idea
 
 # Not needed to build or run the server image
-tests
-docs
+screenshots
 *.md
 !README.md
