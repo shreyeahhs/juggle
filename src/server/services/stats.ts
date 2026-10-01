@@ -92,9 +92,16 @@ export class StatsService {
         total: sql<number>`count(*)`,
         success: sql<number>`count(*) filter (where ${requests.outcome} = 'success')`,
         failed: sql<number>`count(*) filter (where ${requests.outcome} <> 'success')`,
-        today: sql<number>`count(*) filter (where ${requests.createdAt} >= ${startOfDay})`,
-        tokensToday: sql<number>`coalesce(sum(${requests.totalTokens}) filter (where ${requests.createdAt} >= ${startOfDay}), 0)`,
-        avgLatency: sql<number | null>`avg(${requests.latencyMs}) filter (where ${requests.createdAt} >= ${dayAgo})`,
+        // The comparisons go through gte() rather than interpolating the Date
+        // directly: a bare value in a sql`` template becomes an untyped param
+        // that reaches the driver as a Date object, and postgres-js only
+        // recognises one via `instanceof Date`. Under a bundler that gives the
+        // driver a different realm's Date, that check fails and the query dies
+        // on an unserialisable param. gte() attaches the column's encoder,
+        // which converts to an ISO string before the driver ever sees it.
+        today: sql<number>`count(*) filter (where ${gte(requests.createdAt, startOfDay)})`,
+        tokensToday: sql<number>`coalesce(sum(${requests.totalTokens}) filter (where ${gte(requests.createdAt, startOfDay)}), 0)`,
+        avgLatency: sql<number | null>`avg(${requests.latencyMs}) filter (where ${gte(requests.createdAt, dayAgo)})`,
       })
       .from(requests);
 

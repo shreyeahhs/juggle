@@ -98,7 +98,14 @@ export class EnvKeyStore implements KeyStore {
     if (outcome.countRateLimit) set.rateLimitCount = sql`${providerKeys.rateLimitCount} + 1`;
     if (outcome.incrementFailures) set.consecutiveFailures = sql`${providerKeys.consecutiveFailures} + 1`;
     if (outcome.keyCooldownUntil) {
-      set.cooldownUntil = sql`GREATEST(COALESCE(${providerKeys.cooldownUntil}, ${outcome.keyCooldownUntil}), ${outcome.keyCooldownUntil})`;
+      // Serialised here rather than interpolated as a Date. A bare value in a
+      // sql`` template is an untyped param, so the driver receives the Date
+      // object itself, and postgres-js identifies one with `instanceof Date` --
+      // which fails when a bundler hands the driver a different realm's Date,
+      // taking the whole cooldown write with it. The cast keeps the type
+      // unambiguous now that the param arrives as text.
+      const until = outcome.keyCooldownUntil.toISOString();
+      set.cooldownUntil = sql`GREATEST(COALESCE(${providerKeys.cooldownUntil}, ${until}::timestamptz), ${until}::timestamptz)`;
     }
     if (outcome.invalidate) {
       set.status = "invalid";
