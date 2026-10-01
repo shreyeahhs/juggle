@@ -61,3 +61,6 @@ Thumbs.db
 AGENTS.md
 CLAUDE.md
 .claude/
+# Points at one person's own Supabase project, so it is not something a fork
+# should inherit. Recreate it locally with `claude mcp add`.
+.mcp.json
