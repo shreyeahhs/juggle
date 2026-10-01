@@ -511,6 +511,19 @@ Set the variables for **all** environments, or preview deploys will fail their h
 first successful deploy you can set `RUN_MIGRATIONS=false` and run `pnpm db:migrate` as a release step
 instead.
 
+**Put the function in the same region as your database.** This is the single biggest performance
+lever, and the default gets it wrong: Vercel runs functions in `iad1` (Washington DC) unless told
+otherwise, so a database in, say, London means every query crosses the Atlantic. The dashboard issues
+several queries per render, and that adds up fast. [`vercel.json`](vercel.json) pins the region:
+
+```json
+{ "regions": ["lhr1"] }
+```
+
+Change `lhr1` to match wherever your database lives — `iad1` for us-east-1, `fra1` for eu-central-1,
+`sfo1` for us-west-1. Your deployment's actual region is in the `x-vercel-id` response header, which
+reads `<edge>::<function>::<id>`; it is the middle one that matters.
+
 > Streaming responses on Vercel's serverless functions are subject to your plan's maximum duration.
 > Long generations are the one place a container host is the easier choice.
 
