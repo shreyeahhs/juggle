@@ -487,6 +487,13 @@ fingerprint, so renaming one keeps its history, and re-adding one picks it back 
 
 ## Deploying to production
 
+**Prefer a container host over serverless if you have the choice.** Juggle holds a PostgreSQL
+connection pool, and that is a poor fit for serverless: every cold instance opens its own pool, they
+compete for a limited number of pooler clients, and the driver *queues* rather than erroring when it
+cannot get a connection — so the symptom is a page that hangs rather than one that fails usefully.
+A container keeps one process and one pool, and the problem disappears. Both routes are documented
+below; the container one has fewer sharp edges.
+
 ### Vercel
 
 1. Fork this repository and import it on Vercel.
@@ -555,9 +562,18 @@ docker build -t juggle .
 docker run -p 3000:3000 --env-file .env juggle
 ```
 
-That works as-is on Fly.io, Railway, Render, Koyeb, a VPS behind nginx, or anything else that runs a
+That works as-is on Render, Fly.io, Railway, Koyeb, a VPS behind nginx, or anything else that runs a
 container. Point your platform's health check at **`/api/health`**, which returns `200 {"status":"ok"}`
 when the database is reachable and `503` when it is not.
+
+On **Render**, point a new Web Service at your fork, leave the build and start commands at Render's
+Node defaults or select Docker to use the `Dockerfile`, set the environment variables from
+[Configuration](#configuration), and set the health check path to `/api/health`. Because the process
+is long-lived, the session pooler on port 5432 is fine here and `DATABASE_POOL_MAX` can stay at its
+default. Pick the region nearest your database.
+
+> On a free instance, the service sleeps after a period of inactivity and the next request pays a
+> cold start of roughly a minute. That is the platform sleeping, not the gateway being slow.
 
 ### Bare Node
 
