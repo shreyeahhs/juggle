@@ -548,12 +548,29 @@ when the database is reachable and `503` when it is not.
 
 ### Bare Node
 
+`next.config.ts` sets `output: "standalone"`, so the build emits a self-contained server rather than
+something `next start` serves. Three details catch people out here, so they are spelled out:
+
 ```bash
 pnpm install --frozen-lockfile
 pnpm build
 pnpm db:migrate
-pnpm start
+
+# 1. The standalone bundle does not include static assets. Copy them in.
+cp -r .next/static .next/standalone/.next/static
+
+# 2. Run the emitted server, not `next start`.
+#    (`next start` warns that it does not work with standalone output.)
+node .next/standalone/server.js
 ```
+
+**3. The standalone server does not read your project's `.env`.** It reads the real process
+environment, so export the variables, use your init system's environment file, or copy `.env` next to
+`server.js`. Starting it without them fails immediately and tells you which are missing — it will not
+limp along on defaults.
+
+`pnpm start` is fine for a quick local look at a production build, but the standalone server is what
+you deploy.
 
 ### Production checklist
 
@@ -562,8 +579,8 @@ pnpm start
 - [ ] `AUTH_SECRET` is 32+ random characters and **differs from every other environment**. Changing it
       invalidates sessions and resets key fingerprints, which orphans your statistics.
 - [ ] `OWNER_PASSWORD` is not the one `pnpm secrets:generate` printed into your shell history.
-- [ ] `DATABASE_URL` is set. Without it, production falls back to an embedded database that does not
-      survive a redeploy.
+- [ ] `DATABASE_URL` is set. In production the app **refuses to start without it** rather than quietly
+      falling back to the embedded development database.
 - [ ] `TRUST_PROXY=true` **if and only if** you are behind a proxy that sets `x-forwarded-for`. Setting
       it without one lets a client spoof its IP past the auth-failure throttle.
 - [ ] `GATEWAY_CORS_ORIGINS` is empty unless a browser genuinely must call `/v1` directly.
@@ -621,6 +638,8 @@ additive.
 | All keys throttle together | They share a Google Cloud project. Either group them so Juggle knows, or create keys in separate projects. |
 | `PGlite: database is locked` | Two processes want the embedded database. Stop the dev server before running db scripts. |
 | Dashboard signs you out repeatedly | `AUTH_SECRET` differs between instances, or changed on redeploy. |
+| `Invalid environment configuration` on startup | Validation runs on first request and names every offending variable without printing values. In production it additionally requires `DATABASE_URL` and an `https://` `APP_URL`. |
+| `AUTH_SECRET still looks like a placeholder` | In production, `AUTH_SECRET` and `OWNER_PASSWORD` are rejected if they contain `changeme`, `example`, `placeholder` or **`password`**. A dashboard password of `mypassword123` trips this. Pick something else — ideally what `pnpm secrets:generate` produced. |
 
 Every error response carries `x-request-id`; search for it in the dashboard's request log to see the
 full attempt chain.
