@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!--
+    The Logo mark, scaled to fill a favicon and given literal colours: a file
+    served as /icon.svg has no Tailwind and no access to the theme tokens.
+    Values are copied from globals.css, light theme first, with the dark theme
+    applied through prefers-color-scheme so the mark holds up against either
+    tab bar. The arc is thicker here than in the in-page logo, which is drawn at
+    20px and upwards; at 16px the original 1.4 stroke disappears.
+  -->
+  <style>
+    .arc { stroke: oklch(74% 0.01 80); }
+    .hot { fill: oklch(69% 0.163 58); }
+    .rest { fill: oklch(55.5% 0.011 70); }
+    @media (prefers-color-scheme: dark) {
+      .arc { stroke: oklch(45% 0.012 62); }
+      .hot { fill: oklch(75% 0.155 62); }
+      .rest { fill: oklch(66% 0.012 66); }
+    }
+  </style>
+  <path class="arc" d="M6.1 23.3C6.1 14.5 10.5 6.9 16 6.9s9.9 7.6 9.9 16.4" fill="none" stroke-width="2.2" stroke-linecap="round" />
+  <rect class="hot" x="12.5" y="3.2" width="7" height="7" rx="1.5" />
+  <rect class="rest" x="2.9" y="20.6" width="6.3" height="6.3" rx="1.4" />
+  <rect class="rest" x="22.8" y="20.6" width="6.3" height="6.3" rx="1.4" />
+</svg>

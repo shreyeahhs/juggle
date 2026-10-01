@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { siteConfig } from "@/lib/site";
+import { themeScript } from "@/lib/theme-script";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
@@ -19,15 +20,12 @@ export const viewport: Viewport = {
   ],
 };
 
-/**
- * Applies the saved theme before first paint so there is no flash of the wrong
- * theme. It has to be a blocking inline script in <head>: `next/script` with
- * `beforeInteractive` is delivered through the RSC payload and runs after
- * hydration begins, which is exactly the flash this avoids. React logs a
- * development-only notice about script tags inside components; the script is
- * intentionally never re-run on client navigation, so the notice is expected.
+/*
+ * The theme script lives in @/lib/theme-script because `global-error` needs the
+ * same copy. React logs a development-only notice about script tags inside
+ * components; the script is intentionally never re-run on client navigation, so
+ * the notice is expected.
  */
-const themeScript = `(function(){try{var t=localStorage.getItem("juggle-theme");var d=t?t==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
